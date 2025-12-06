@@ -175,8 +175,9 @@ export const Foliage: React.FC<FoliageProps> = ({ progress, userImage }) => {
           array={randoms}
           itemSize={1}
         />
+        {/* Note: Color attribute is handled via vertexColors={true} and implicit buffer matching by Three.js */}
         <bufferAttribute
-          attach="attributes-color" // VertexColors auto-injects this into shader
+          attach="attributes-color" 
           count={colors.length / 3}
           array={colors}
           itemSize={3}

@@ -7,7 +7,7 @@ import * as THREE from 'three';
 
 const App: React.FC = () => {
   const [treeState, setTreeState] = useState<TreeMorphState>(TreeMorphState.SCATTERED);
-  const [userImage, setUserImage] = useState<string | null>(null);
+  const [userImages, setUserImages] = useState<string[]>([]);
 
   const toggleState = useCallback(() => {
     setTreeState(prev => 
@@ -18,10 +18,10 @@ const App: React.FC = () => {
   }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setUserImage(url);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newImages = Array.from(files).map(file => URL.createObjectURL(file as Blob));
+      setUserImages(prev => [...prev, ...newImages]);
       // Auto-switch to tree shape to see the photo effect better
       setTreeState(TreeMorphState.TREE_SHAPE);
     }
@@ -37,6 +37,11 @@ const App: React.FC = () => {
          <span className="font-['Cinzel'] text-xs text-[#C5A059] border border-[#C5A059]/30 px-3 py-1 rounded-full bg-black/20 backdrop-blur-sm shadow-[0_0_15px_rgba(197,160,89,0.1)]">
            Est. 2025
          </span>
+         {userImages.length > 0 && (
+           <span className="mt-2 font-['Playfair_Display'] text-[10px] text-white/50 italic">
+             {userImages.length} Memories Loaded
+           </span>
+         )}
       </div>
 
       {/* 3D Canvas */}
@@ -51,7 +56,7 @@ const App: React.FC = () => {
       >
         {/* Fog to blend floor into nothingness */}
         <fog attach="fog" args={['#000502', 10, 50]} />
-        <Scene treeState={treeState} userImage={userImage} />
+        <Scene treeState={treeState} userImages={userImages} />
       </Canvas>
 
       {/* UI Overlay */}
@@ -98,6 +103,7 @@ const App: React.FC = () => {
               type="file" 
               id="photo-upload" 
               accept="image/*" 
+              multiple
               onChange={handleImageUpload} 
               className="hidden" 
             />
@@ -108,8 +114,9 @@ const App: React.FC = () => {
                 border border-[#C5A059]/50 rounded-full bg-black/40 backdrop-blur-sm
                 hover:bg-[#C5A059]/20 hover:border-[#FFD700] transition-all duration-300
               "
-              title="Upload Photo Texture"
+              title="Upload Photos"
             >
+              {/* Photo Icon */}
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-[#C5A059] group-hover:text-[#FFD700]">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
               </svg>

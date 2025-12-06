@@ -6,14 +6,15 @@ import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { Foliage } from './Foliage';
 import { Ornaments } from './Ornaments';
+import { PhotoAlbum } from './PhotoAlbum';
 import { TreeMorphState } from '../types';
 
 interface SceneProps {
   treeState: TreeMorphState;
-  userImage: string | null;
+  userImages: string[];
 }
 
-export const Scene: React.FC<SceneProps> = ({ treeState, userImage }) => {
+export const Scene: React.FC<SceneProps> = ({ treeState, userImages }) => {
   const groupRef = useRef<THREE.Group>(null);
   
   // 0 = Scattered, 1 = Tree
@@ -57,8 +58,13 @@ export const Scene: React.FC<SceneProps> = ({ treeState, userImage }) => {
 
       {/* Scene Content */}
       <group ref={groupRef} position={[0, -2, 0]}>
-        <Foliage progress={targetProgress} userImage={userImage} />
+        {/* Pass the first image to foliage for texture theme */}
+        <Foliage progress={targetProgress} userImage={userImages.length > 0 ? userImages[0] : null} />
+        
         <Ornaments progress={targetProgress} />
+        
+        {/* New Photo Album Component */}
+        <PhotoAlbum images={userImages} progress={targetProgress} />
         
         {/* Extra Ambient Sparkles */}
         <Sparkles 
