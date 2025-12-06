@@ -91,8 +91,8 @@ const fragmentShader = `
     vec3 finalColor = vColor;
     if (uUseTexture) {
         vec3 texColor = texture2D(uTexture, vUv).rgb;
-        // Blend texture color with particle color (gold/green)
-        finalColor = mix(vColor, texColor, 0.7); 
+        // If texture is active, rely mostly on texture color, but keep a tiny bit of original glitter
+        finalColor = mix(vColor * 0.5, texColor, 0.85); 
     }
 
     gl_FragColor = vec4(finalColor, vAlpha * glow);
@@ -101,9 +101,10 @@ const fragmentShader = `
 
 interface FoliageProps {
   progress: number;
+  userImage: string | null;
 }
 
-export const Foliage: React.FC<FoliageProps> = ({ progress }) => {
+export const Foliage: React.FC<FoliageProps> = ({ progress, userImage }) => {
   const shaderRef = useRef<THREE.ShaderMaterial>(null);
   
   // Memoize data generation
@@ -111,7 +112,7 @@ export const Foliage: React.FC<FoliageProps> = ({ progress }) => {
     generateFoliage(CONFIG.PARTICLE_COUNT, CONFIG.TREE_HEIGHT, CONFIG.TREE_RADIUS), 
   []);
   
-  // UV Calculation for texture mapping (Planar or Cylindrical)
+  // UV Calculation for texture mapping (Cylindrical)
   const uvs = useMemo(() => {
     const uvArray = new Float32Array((positions.length / 3) * 2);
     for(let i=0; i<positions.length/3; i++) {
@@ -130,7 +131,10 @@ export const Foliage: React.FC<FoliageProps> = ({ progress }) => {
     return uvArray;
   }, [positions]);
 
-  const texture = useLoader(THREE.TextureLoader, 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=500&q=60'); // Abstract festive texture
+  // Load Texture (Default or User Uploaded)
+  // We use a default fallback if userImage is null, but we toggle uUseTexture based on userImage presence
+  const textureUrl = userImage || 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=500&q=60';
+  const texture = useLoader(THREE.TextureLoader, textureUrl);
 
   useFrame((state) => {
     if (shaderRef.current) {
@@ -141,6 +145,12 @@ export const Foliage: React.FC<FoliageProps> = ({ progress }) => {
         progress,
         0.05
       );
+      
+      // Update texture uniform
+      if (texture) {
+        shaderRef.current.uniforms.uTexture.value = texture;
+      }
+      shaderRef.current.uniforms.uUseTexture.value = !!userImage;
     }
   });
 
@@ -186,7 +196,7 @@ export const Foliage: React.FC<FoliageProps> = ({ progress }) => {
           uTime: { value: 0 },
           uProgress: { value: 0 },
           uTexture: { value: texture },
-          uUseTexture: { value: false } // Set to true to enable photo-tree mode
+          uUseTexture: { value: !!userImage } 
         }}
         transparent
         depthWrite={false}

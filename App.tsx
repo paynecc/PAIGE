@@ -7,6 +7,7 @@ import * as THREE from 'three';
 
 const App: React.FC = () => {
   const [treeState, setTreeState] = useState<TreeMorphState>(TreeMorphState.SCATTERED);
+  const [userImage, setUserImage] = useState<string | null>(null);
 
   const toggleState = useCallback(() => {
     setTreeState(prev => 
@@ -15,6 +16,16 @@ const App: React.FC = () => {
         : TreeMorphState.TREE_SHAPE
     );
   }, []);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setUserImage(url);
+      // Auto-switch to tree shape to see the photo effect better
+      setTreeState(TreeMorphState.TREE_SHAPE);
+    }
+  };
 
   return (
     <div className="relative w-full h-screen bg-[#000502] text-white overflow-hidden">
@@ -40,7 +51,7 @@ const App: React.FC = () => {
       >
         {/* Fog to blend floor into nothingness */}
         <fog attach="fog" args={['#000502', 10, 50]} />
-        <Scene treeState={treeState} />
+        <Scene treeState={treeState} userImage={userImage} />
       </Canvas>
 
       {/* UI Overlay */}
@@ -56,7 +67,6 @@ const App: React.FC = () => {
               Signature Collection
             </h2>
           </div>
-          {/* Previous location of Est. 2025 removed from here */}
         </header>
 
         {/* Footer Controls */}
@@ -66,23 +76,45 @@ const App: React.FC = () => {
             Summon the spirit of the season."
           </p>
 
-          <button
-            onClick={toggleState}
-            className={`
-              relative group overflow-hidden px-10 py-4 
-              border border-[#C5A059] transition-all duration-700 ease-out
-              ${treeState === TreeMorphState.TREE_SHAPE ? 'bg-[#C5A059]/10' : 'bg-transparent'}
-              hover:bg-[#C5A059]/20 hover:border-[#FFD700] hover:shadow-[0_0_30px_rgba(197,160,89,0.3)]
-            `}
-          >
-            {/* Button Inner Text */}
-            <span className="relative z-10 font-['Cinzel'] text-sm md:text-lg tracking-[0.2em] text-[#FFD700] group-hover:text-white transition-colors duration-300">
-              {treeState === TreeMorphState.TREE_SHAPE ? 'SCATTER ESSENCE' : 'ASSEMBLE TREE'}
-            </span>
-            
-            {/* Shine Effect */}
-            <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:animate-shine" />
-          </button>
+          <div className="flex gap-4 items-center">
+            {/* Morph Button */}
+            <button
+              onClick={toggleState}
+              className={`
+                relative group overflow-hidden px-10 py-4 
+                border border-[#C5A059] transition-all duration-700 ease-out
+                ${treeState === TreeMorphState.TREE_SHAPE ? 'bg-[#C5A059]/10' : 'bg-transparent'}
+                hover:bg-[#C5A059]/20 hover:border-[#FFD700] hover:shadow-[0_0_30px_rgba(197,160,89,0.3)]
+              `}
+            >
+              <span className="relative z-10 font-['Cinzel'] text-sm md:text-lg tracking-[0.2em] text-[#FFD700] group-hover:text-white transition-colors duration-300">
+                {treeState === TreeMorphState.TREE_SHAPE ? 'SCATTER ESSENCE' : 'ASSEMBLE TREE'}
+              </span>
+              <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:animate-shine" />
+            </button>
+
+            {/* Hidden File Input & Label Button */}
+            <input 
+              type="file" 
+              id="photo-upload" 
+              accept="image/*" 
+              onChange={handleImageUpload} 
+              className="hidden" 
+            />
+            <label 
+              htmlFor="photo-upload"
+              className="
+                cursor-pointer group flex items-center justify-center w-12 h-12 md:w-14 md:h-14
+                border border-[#C5A059]/50 rounded-full bg-black/40 backdrop-blur-sm
+                hover:bg-[#C5A059]/20 hover:border-[#FFD700] transition-all duration-300
+              "
+              title="Upload Photo Texture"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-[#C5A059] group-hover:text-[#FFD700]">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+            </label>
+          </div>
 
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent mt-4" />
         </footer>

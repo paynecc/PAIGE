@@ -10,9 +10,10 @@ import { TreeMorphState } from '../types';
 
 interface SceneProps {
   treeState: TreeMorphState;
+  userImage: string | null;
 }
 
-export const Scene: React.FC<SceneProps> = ({ treeState }) => {
+export const Scene: React.FC<SceneProps> = ({ treeState, userImage }) => {
   const groupRef = useRef<THREE.Group>(null);
   
   // 0 = Scattered, 1 = Tree
@@ -56,7 +57,7 @@ export const Scene: React.FC<SceneProps> = ({ treeState }) => {
 
       {/* Scene Content */}
       <group ref={groupRef} position={[0, -2, 0]}>
-        <Foliage progress={targetProgress} />
+        <Foliage progress={targetProgress} userImage={userImage} />
         <Ornaments progress={targetProgress} />
         
         {/* Extra Ambient Sparkles */}
